@@ -1,0 +1,185 @@
+// ==UserScript==
+// @name         Wolt list copy
+// @namespace    http://tampermonkey.net/
+// @version      2024-11-13
+// @description  try to take over the world!
+// @author       anil@anilmaharjan.com.np
+// @match        https://wolt.com/*
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=wolt.com
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    window.addEventListener('load', () => {
+        // Create and append the Generate List button
+        const generateListButton = document.createElement('button');
+        generateListButton.id = 'generateListButton';
+        generateListButton.textContent = 'Generate List';
+        document.body.appendChild(generateListButton);
+
+        // Create and append the overlay
+        const overlay = document.createElement('div');
+        overlay.id = 'overlay';
+        overlay.className = 'overlay';
+        const overlayContent = document.createElement('div');
+        overlayContent.id = 'overlayContent';
+        overlayContent.className = 'overlay-content';
+
+        // Create and append the title bar
+        const titleBar = document.createElement('div');
+        titleBar.className = 'title-bar';
+        titleBar.textContent = 'Copy your order list';
+        overlayContent.appendChild(titleBar);
+
+        // Create and append the h2 element for product modal title
+        const productTitle = document.createElement('h2');
+        overlayContent.appendChild(productTitle);
+
+        // Create and append the copy button
+        const copyButton = document.createElement('button');
+        copyButton.id = 'copyButton';
+        copyButton.textContent = 'Copy';
+        overlayContent.appendChild(copyButton);
+
+        // Create and append the close button
+        const closeOverlayButton = document.createElement('button');
+        closeOverlayButton.id = 'closeOverlayButton';
+        closeOverlayButton.textContent = 'Close';
+        overlayContent.appendChild(closeOverlayButton);
+
+        overlay.appendChild(overlayContent);
+        document.body.appendChild(overlay);
+
+        // Add basic styles for the overlay and buttons
+        const style = document.createElement('style');
+        style.textContent = `
+            .overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: none;
+                justify-content: center;
+                align-items: center;
+            }
+            .overlay-content {
+                background: white;
+                padding: 20px;
+                border-radius: 5px;
+                text-align: center;
+                position: relative;
+                max-width: 80%;
+                max-height: 80%;
+                overflow-y: auto;
+            }
+            .title-bar {
+                background-color: #009de0;
+                color: white;
+                padding: 10px;
+                font-size: 18px;
+                font-weight: bold;
+                border-top-left-radius: 5px;
+                border-top-right-radius: 5px;
+                margin: -20px -20px 20px -20px;
+            }
+            #generateListButton {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                padding: 15px 30px;
+                font-size: 16px;
+                font-weight: bold;
+                background-color: #009de0;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                z-index: 1000;
+            }
+            #generateListButton:hover {
+                background-color: #0056b3;
+            }
+            #copyButton {
+                margin-top: 20px;
+                padding: 10px 20px;
+                font-size: 14px;
+                background-color: #28a745;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+            #copyButton:hover {
+                background-color: #218838;
+            }
+            #closeOverlayButton {
+                margin-top: 20px;
+                padding: 10px 20px;
+                font-size: 14px;
+                background-color: #dc3545;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+            #closeOverlayButton:hover {
+                background-color: #c82333;
+            }
+            ul {
+                text-align: left;
+                padding-left: 20px;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Add event listener to the Generate List button
+        generateListButton.addEventListener('click', () => {
+            const checkedCheckboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            const ul = document.createElement('ul');
+
+            checkedCheckboxes.forEach(checkbox => {
+                const label = checkbox.labels[0];
+                if (label) {
+                    const li = document.createElement('li');
+                    li.textContent = label.textContent;
+                    ul.appendChild(li);
+                }
+            });
+
+            // Get the product modal title and set it to the h2 element
+            const productModalTitle = document.querySelector('[data-test-id="product-modal"] h2');
+            if (productModalTitle) {
+                productTitle.textContent = productModalTitle.textContent;
+            }
+
+            overlayContent.insertBefore(ul, copyButton);
+            overlay.style.display = 'flex';
+        });
+
+        // Add event listener to the Copy button
+        copyButton.addEventListener('click', () => {
+            const productTitleText = productTitle.textContent;
+            const listItems = Array.from(document.querySelectorAll('#overlayContent ul li')).map(li => li.textContent);
+            const textToCopy = `${productTitleText}\n\n${listItems.join('\n')}`;
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                alert('Copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        });
+
+        // Add event listener to the Close button
+        closeOverlayButton.addEventListener('click', () => {
+            overlay.style.display = 'none';
+            const ul = document.querySelector('#overlayContent ul');
+            if (ul) {
+                ul.remove();
+            }
+        });
+    });
+})();
