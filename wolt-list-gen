@@ -138,7 +138,7 @@
 
         // Add event listener to the Generate List button
         generateListButton.addEventListener('click', () => {
-            const checkedCheckboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            const checkedCheckboxes = document.querySelectorAll('input:checked');
             const ul = document.createElement('ul');
 
             checkedCheckboxes.forEach(checkbox => {
